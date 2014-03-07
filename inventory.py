@@ -28,18 +28,19 @@ try:
     api_pass=config.get('shopify','api_pass')
     storename=config.get('shopify','storename')
     shop_url = "https://"+api_key+":"+api_pass+"@"+storename+".myshopify.com/admin"
+    ## dropbox stuff
+    # 
+    # get the app key and secret from the config file
+    dropbox_app_key = config.get('dropbox','dropbox_app_key')
+    dropbox_app_secret = config.get('dropbox','dropbox_app_secret')
+    ## if there is no access token then prompt for access granting
+    dropbox_access_token = config.get('dropbox','dropbox_access_token')
 
 except:
     print "something wrong reading " + configFilePath
     print Exception
+    exit()
 
-## dropbox stuff
-# 
-# get the app key and secret from the config file
-dropbox_app_key = config.get('dropbox','dropbox_app_key')
-dropbox_app_secret = config.get('dropbox','dropbox_app_secret')
-## if there is no access token then prompt for access granting
-dropbox_access_token = config.get('dropbox','dropbox_access_token')
 if not dropbox_access_token:
     print "no dropbox token found"
     flow = dropbox.client.DropboxOAuth2FlowNoRedirect(dropbox_app_key, dropbox_app_secret)

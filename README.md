@@ -22,16 +22,21 @@ The inventory items in your QBPOS have "Item Number"s which are matched up again
  * **Item Number, Item Name, Qty1** in that order
  * these are default column headings in POS so it should be no problem but you will want to create a template in POS so you can use it repeatedly.
 *   Save the resulting file to your dropbox folder, note the path
- * put the path in the <code>inventory.cfg</code> file
+ * put the path in the <code>inventory.config</code> file
 *   get your shopify api_key and api_secret http://docs.shopify.com/support/configuration/apps/where-do-i-find-my-api-key
- * Put your shopify api stuff in the <code>inventory.cfg</code> file
+ * Put your shopify api stuff in the <code>inventory.config</code> file
  
 ## Run it
 *   The first time the program runs, it will ask you to authorize it access to your store. Follow the instructions.
- * it will save the access_token in the <code>inventory.cfg</code> file itself, so be sure that happens.
+ * it will save the access_token in the <code>inventory.config</code> file itself, so be sure that happens.
 
-## Schedule it
+## Schedule
 * Create a scheduled task to run it on a regular basis so it "notices" when an inventory file is created and updates your shopify site without too much interaction on your part.
+
+## inventoryArchiveCleaner.py
+* deletes any files older than **max_age** setting found in the config file
+* from the **archive_path** dropbox directory setting in the config file
+* could be scheduled to run or maybe should be called from the inventory script at the end.
 
 ## TO-DOs
 * the todos are in comments in the code.
