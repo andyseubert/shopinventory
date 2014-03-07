@@ -3,13 +3,13 @@ shopinventory
 
 **This program will update shopify inventory from quickbooks Point Of Sale export csv file**
 
-## required
-python (duh)
-shopify python lib <code>pip install shopify</code>
-python dropbox lib <code>pip install dropbox</code>
-
 This takes an inventory spreadsheet which comes out of quickbooks Point Of Sale which is saved in dropbox as input.
 The inventory items in your QBPOS have "Item Number"s which are matched up against shopify SKU numbers.
+
+## required
+*   python (duh)
+*   shopify python lib <code>pip install shopify</code>
+*   python dropbox lib <code>pip install dropbox</code>
 
 ## Prepare
 *   Open a shopify store and import your inventory. For this to work you must have SKUs in your shopify products.
