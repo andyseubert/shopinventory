@@ -10,6 +10,8 @@ The inventory items in your QBPOS have "Item Number"s which are matched up again
 *   python (duh)
 *   shopify python lib <code>pip install shopify</code>
 *   python dropbox lib <code>pip install dropbox</code>
+*   dropbox dev account?
+*   shopify dev account?
 
 ## Prepare
 *   Open a shopify store and import your inventory. For this to work you must have SKUs in your shopify products.
