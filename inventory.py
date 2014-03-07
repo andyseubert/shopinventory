@@ -15,16 +15,23 @@ import webbrowser
 ## todo: add argument parsing for config file location
 config = ConfigParser.ConfigParser(allow_no_value=True)
 configFilePath = 'c:\\Users\\andys\\Dropbox\\shopify\\inventory.config'
-config.read(configFilePath)
+if not os.path.isfile(configFilePath):
+    print "config file " + configFilePath + " not found"
+    exit()
+try:
+    config.read(configFilePath)
+    # shopify configurations
+    #URL Format	https://apikey:password@hostname/admin/resource.json
+    #Example URL	https://cc9fa84b4d3d05b7f2256f7913b66272:0192638aacc90d3ebfe7168b9d77f1d0@flora-60.myshopify.com/admin/orders.json
+    ## get shopify config options
+    api_key=config.get('shopify','api_key')
+    api_pass=config.get('shopify','api_pass')
+    storename=config.get('shopify','storename')
+    shop_url = "https://"+api_key+":"+api_pass+"@"+storename+".myshopify.com/admin"
 
-# shopify configurations
-#URL Format	https://apikey:password@hostname/admin/resource.json
-#Example URL	https://cc9fa84b4d3d05b7f2256f7913b66272:0192638aacc90d3ebfe7168b9d77f1d0@flora-60.myshopify.com/admin/orders.json
-## get shopify config options
-api_key=config.get('shopify','api_key')
-api_pass=config.get('shopify','api_pass')
-storename=config.get('shopify','storename')
-shop_url = "https://"+api_key+":"+api_pass+"@"+storename+".myshopify.com/admin"
+except:
+    print "something wrong reading " + configFilePath
+    print Exception
 
 ## dropbox stuff
 # 
