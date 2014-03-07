@@ -18,7 +18,7 @@ The inventory items in your QBPOS have "Item Number"s which are matched up again
 *   Open a shopify store and import your inventory. For this to work you must have SKUs in your shopify products.
 *   If you're moving from zencart, put the php script called "allExport.php" on your zencart web server, configure it, and it will export into a csv which shopify can import.
 *   Get yourself a dropbox account and install it on your POS computer.
-*   Open POS and export your items to a .csv file with ONLY THREE COLUMNS
+*   Open POS and export your items to a .xls file with ONLY THREE COLUMNS
  * **Item Number, Item Name, Qty1** in that order
  * these are default column headings in POS so it should be no problem but you will want to create a template in POS so you can use it repeatedly.
 *   Save the resulting file to your dropbox folder, note the path
@@ -31,7 +31,8 @@ The inventory items in your QBPOS have "Item Number"s which are matched up again
  * it will save the access_token in the <code>inventory.config</code> file itself, so be sure that happens.
 
 ## Schedule
-* Create a scheduled task to run it on a regular basis so it "notices" when an inventory file is created and updates your shopify site without too much interaction on your part.
+* the POS export process is sadly entirely manual.
+* Create a scheduled task to run the **inventory.py** on a regular basis so it "notices" when an inventory file is created and updates your shopify site without too much interaction on your part.
 
 ## inventoryArchiveCleaner.py
 * deletes any files older than **max_age** setting found in the config file

@@ -78,7 +78,7 @@ print "using POS inventory file: " + inventoryFile
 # get the file from dropbox
 # I guess you "get" the file and write its contents to a local file in order to use it
 tempDir=tempfile.gettempdir()
-tmpInventoryFile = tempDir+"\\tempInventory.csv"
+tmpInventoryFile = tempDir+"\\tempInventory.xls"
 print "using temporary file at: " + tmpInventoryFile
 print
 
