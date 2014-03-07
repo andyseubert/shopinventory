@@ -10,7 +10,9 @@ The inventory items in your QBPOS have "Item Number"s which are matched up again
 *   python (duh)
 *   shopify python lib <code>pip install shopify</code>
 *   python dropbox lib <code>pip install dropbox</code>
-*   dropbox dev account?
+*   dropbox dev account? https://www.dropbox.com/developers
+
+   If you would like to use the app as-is, then contact me. I will send you the dropbox_api configurations to put in the .config file
 
 ## Prepare
 *   Open a shopify store and import your inventory. For this to work you must have SKUs in your shopify products.
@@ -18,9 +20,13 @@ The inventory items in your QBPOS have "Item Number"s which are matched up again
 *   Get yourself a dropbox account and install it on your POS computer.
 *   Open POS and export your items to a .csv file with ONLY THREE COLUMNS named **Item Number, Item Name, Qty1** in that order.
 *   Save the resulting file to your dropbox folder, note the path
+ * put the path in the *inventory.cfg* file
 *   get your shopify api_key and api_secret http://docs.shopify.com/support/configuration/apps/where-do-i-find-my-api-key
-*   
-
+ * Put your shopify api stuff in the *inventory.cfg* file
+ 
+## Run it
+*   The first time the program runs, it will ask you to authorize it access to your store. Follow the instructions.
+ * it will save the access_token in the *inventory.cfg* file itself, so be sure that happens.
 
 
 
