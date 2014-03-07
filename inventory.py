@@ -83,6 +83,14 @@ print "using temporary file at: " + tmpInventoryFile
 print
 
 tfh = open(tmpInventoryFile,"wb")
+
+try:
+    client.get_file(inventoryFile)
+except:
+    print "could not get POS inventory file " + inventoryFile + " from dropbox"
+    print "done"
+    exit()
+
 with client.get_file(inventoryFile) as f:
     tfh.write(f.read())
 tfh.close()
