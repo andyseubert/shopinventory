@@ -23,7 +23,8 @@ The inventory items in your QBPOS have "Item Number"s which are matched up again
  * these are default column headings in POS so it should be no problem but you will want to create a template in POS so you can use it repeatedly.
 *   Save the resulting file to your dropbox folder, note the path
  * put the path in the <code>inventory.config</code> file
-*   get your shopify api_key and api_secret http://docs.shopify.com/support/configuration/apps/where-do-i-find-my-api-key
+*   get your shopify api_key and api_secret
+ * http://docs.shopify.com/support/configuration/apps/where-do-i-find-my-api-key
  * Put your shopify api stuff in the <code>inventory.config</code> file
  
 ## Run it
