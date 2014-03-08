@@ -8,6 +8,8 @@ import os
 import io
 import dropbox
 import webbrowser
+from datetime import *
+
 # todo: use try:catch to capture errors and email them to someone specified in the config file
 
 # shopify API help from https://groups.google.com/forum/#!msg/shopify-app-discuss/U07XoBgN7eU/CIaaOlwOGaYJ
@@ -35,7 +37,7 @@ try:
     dropbox_app_secret = config.get('dropbox','dropbox_app_secret')
     ## if there is no access token then prompt for access granting
     dropbox_access_token = config.get('dropbox','dropbox_access_token')
-
+    archive_path = config.get('FileSection','archive_path')
 except:
     print "something wrong reading " + configFilePath
     print Exception
@@ -144,9 +146,11 @@ for product in products:
 # todo: send email report
 
 # todo: move the inventory file to archive folder specified in config file
-
+archive_name = str(datetime.now().strftime("%Y%m%d-%H%M%S"))+".xls"
+client.file_move(inventoryFile,archive_path+"/"+ archive_name)
+print "archiving at " + archive_path+"/"+ archive_name
 # todo: delete archive files older than days specified in config file
-
+# done in inventoryArchiveCleaner.py script
 
 
 print
