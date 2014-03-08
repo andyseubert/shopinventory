@@ -1,9 +1,9 @@
 shopinventory
 =============
 
-**This program will update shopify inventory from quickbooks Point Of Sale export csv file**
+**This program will update shopify inventory from quickbooks Point Of Sale export .xls file**
 
-This takes an inventory spreadsheet which comes out of quickbooks Point Of Sale which is saved in dropbox as input.
+This takes an excel inventory spreadsheet which comes out of quickbooks Point Of Sale which is saved in dropbox as input.
 The inventory items in your QBPOS have "Item Number"s which are matched up against shopify SKU numbers.
 
 ## required
