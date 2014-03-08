@@ -28,8 +28,8 @@ The inventory items in your QBPOS have "Item Number"s which are matched up again
  * Put your shopify api stuff in the <code>inventory.config</code> file
  
 ## Run it
-*   The first time the program runs, it will ask you to authorize it access to your store. Follow the instructions.
- * it will save the access_token in the <code>inventory.config</code> file itself, so be sure that happens.
+*   The first time the program runs, it will ask you to authorize it access to your dropbox files. Follow the instructions.
+ * it will save the dropbox_access_token in the <code>inventory.config</code> file itself, so be sure that happens.
 
 ## Schedule
 * the POS export process is sadly entirely manual.
