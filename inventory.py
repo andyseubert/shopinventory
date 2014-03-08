@@ -9,6 +9,8 @@ import io
 import dropbox
 import webbrowser
 from datetime import *
+import subprocess
+from subprocess import Popen
 
 debug=1
 
@@ -43,6 +45,14 @@ try:
     ## if there is no access token then prompt for access granting
     dropbox_access_token = config.get('dropbox','dropbox_access_token')
     archive_path = config.get('FileSection','archive_path')
+    # email report settings
+    report_to=config.get('report','send_to')
+    report_from=config.get('report','send_from')
+    report_user=config.get('report','username')
+    report_pass=config.get('report','password')
+    report_subject=config.get('report','subject')
+    report_py_path=config.get('report','path_to_send_script')
+    
 except:
     print "something wrong reading " + configFilePath
     print Exception
@@ -174,6 +184,16 @@ if debug:
 # done in inventoryArchiveCleaner.py script
 
 #todo: email report to someone
+emailto = "-t "+report_to
+emailfrom = "-f "+report_from
+emailuser="-u "+report_user
+emailpass="-p "+report_pass
+emailsubj="-s \""+ report_subject +"\""
+emailbody="-b \"" + report +"\""
+
+
+subprocess.Popen([sys.executable, report_py_path, emailto,emailfrom,emailuser,emailpass,emailsubj,emailatt,emailbody])
+
 
 print
 print "done"
