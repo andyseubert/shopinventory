@@ -11,6 +11,7 @@ import webbrowser
 from datetime import *
 import subprocess
 from subprocess import Popen
+import sys
 
 debug=1
 
@@ -23,7 +24,7 @@ report = "starting at " + str(datetime.now()) + "\n"
 ## read configuration from a file
 ## todo: add argument parsing for config file location
 config = ConfigParser.ConfigParser(allow_no_value=True)
-configFilePath = 'c:\\Users\\andys\\Dropbox\\shopify\\inventory.config'
+configFilePath = 'c:\\shopify\\inventory.config'
 if not os.path.isfile(configFilePath):
     print "config file " + configFilePath + " not found"
     exit()
@@ -83,8 +84,8 @@ if not dropbox_access_token:
     
 # found the access_token either in the config or from the above auth action
 client = dropbox.client.DropboxClient(dropbox_access_token)
-report = report + 'connected to dropbox\n'+'linked account name: ', client.account_info()["display_name"]+"\n"
-report = report + 'linked account email: ', client.account_info()["email"]+"\n"
+report = report + 'connected to dropbox\n' + 'linked account name: ' + client.account_info()["display_name"] + "\n"
+report = report + 'linked account email: ' +  client.account_info()["email"] + "\n"
 if debug:
     print 'connected to dropbox'
     print 'linked account name: ', client.account_info()["display_name"]
@@ -146,6 +147,7 @@ if debug:
 products = shopify.Product.find()
 # REAL ACTION HAPPENS IN THIS LOOP
 print "comparing inventory listings"
+changecount=0
 for product in products:
     if debug>1:
         print str(product.variants[0].inventory_quantity) + " " + product.title + " >" + product.variants[0].sku +"<"
@@ -167,6 +169,7 @@ for product in products:
 ## set the shopify quantity to the POS quantity here                
                 product.variants[0].inventory_quantity = int(sheet.cell(row_index,2).value)
                 product.save()
+                ++changecount
                 if debug: 
                     print "updated shopify "+ product.title
 
@@ -182,6 +185,9 @@ if debug:
     print "archived at " + archive_path+"/"+ archive_name
 # todo: delete archive files older than days specified in config file
 # done in inventoryArchiveCleaner.py script
+if changecount==0:
+    report = report + "\nno products updated"
+report = report + "finished at " + str(datetime.now()) + "\n"
 
 #todo: email report to someone
 emailto = "-t "+report_to
@@ -189,10 +195,10 @@ emailfrom = "-f "+report_from
 emailuser="-u "+report_user
 emailpass="-p "+report_pass
 emailsubj="-s \""+ report_subject +"\""
-emailbody="-b \"" + report +"\""
+emailbody="-b " + report +""
 
 
-subprocess.Popen([sys.executable, report_py_path, emailto,emailfrom,emailuser,emailpass,emailsubj,emailatt,emailbody])
+subprocess.Popen([sys.executable, report_py_path, emailto,emailfrom,emailuser,emailpass,emailsubj,emailbody])
 
 
 print
