@@ -10,6 +10,11 @@ import dropbox
 import webbrowser
 from datetime import *
 
+debug=1
+
+# this string will be our log
+report = "starting at " + str(datetime.now()) + "\n"
+
 # todo: use try:catch to capture errors and email them to someone specified in the config file
 
 # shopify API help from https://groups.google.com/forum/#!msg/shopify-app-discuss/U07XoBgN7eU/CIaaOlwOGaYJ
@@ -58,34 +63,38 @@ if not dropbox_access_token:
     code = raw_input("paste the authorization code here: ").strip()
     # This will fail if the user enters an invalid authorization code
     dropbox_access_token, dropbox_user_id = flow.finish(code)
-    
-    cfgfile = open(configFilePath,'w')
-    
+    ## save the access token to the config file for later re-use
+    cfgfile = open(configFilePath,'w')    
     config.set('dropbox','dropbox_user_id',dropbox_user_id)
     config.set('dropbox','dropbox_access_token',dropbox_access_token)
     config.write(cfgfile)
     cfgfile.close()
-    print "access token received and saved"
+    print "access token received and saved in " + configFilePath
     
 # found the access_token either in the config or from the above auth action
 client = dropbox.client.DropboxClient(dropbox_access_token)
-print 'connected to dropbox'
-print 'linked account name: ', client.account_info()["display_name"]
-print 'linked account email: ', client.account_info()["email"]
-print
+report = report + 'connected to dropbox\n'+'linked account name: ', client.account_info()["display_name"]+"\n"
+report = report + 'linked account email: ', client.account_info()["email"]+"\n"
+if debug:
+    print 'connected to dropbox'
+    print 'linked account name: ', client.account_info()["display_name"]
+    print 'linked account email: ', client.account_info()["email"]
+    print
 
 ## store exported inventory file location retrieved from configuration
 inventoryFile = config.get('FileSection','store_inventory_file')
-print "using POS inventory file: " + inventoryFile
+report = report + "using QB POS inventory file: " + inventoryFile+"\n"
+if debug:
+    print "using QB POS inventory file: " + inventoryFile
 # get the file from dropbox
-# I guess you "get" the file and write its contents to a local file in order to use it
+# I guess you "get" the file by  writing its contents to a local file in order to use it
 tempDir=tempfile.gettempdir()
 tmpInventoryFile = tempDir+"\\tempInventory.xls"
-print "using temporary file at: " + tmpInventoryFile
-print
+if debug:
+    print "using temporary file at: " + tmpInventoryFile
+    print
 
-tfh = open(tmpInventoryFile,"wb")
-
+# check that the dropbox inventory file exists here
 try:
     client.get_file(inventoryFile)
 except:
@@ -93,9 +102,13 @@ except:
     print "done"
     exit()
 
+# open temp file for writing
+tfh = open(tmpInventoryFile,"wb")
+# read dropbox file in and write it out to the temp file.
 with client.get_file(inventoryFile) as f:
     tfh.write(f.read())
 tfh.close()
+
 print "opening temporary file with excel reader"
 ## open excel sheet
 book = open_workbook(tmpInventoryFile)
@@ -109,13 +122,14 @@ if sheet.cell(0,0).value+sheet.cell(0,1).value+sheet.cell(0,2).value != "Item Nu
     print sheet.cell(0,0).value+sheet.cell(0,1).value+sheet.cell(0,2).value
     print "bad columns"
     exit()
-print "inventory csv OK"
+print tmpInventoryFile + " file OK"
 
 ## get the shopify action.
 shopify.ShopifyResource.set_site(shop_url)
 shop = shopify.Shop.current
-print "connected to shopify"
-print
+if debug:
+    print "connected to shopify shop " + storename
+    print
 
 # get all of the products
 # todo: limit products by something?
@@ -123,8 +137,9 @@ products = shopify.Product.find()
 # REAL ACTION HAPPENS IN THIS LOOP
 print "comparing inventory listings"
 for product in products:
-    #print str(product.variants[0].inventory_quantity) + " " + product.title + " >" + product.variants[0].sku +"<"
-    #print "looking for "+ product.variants[0].sku + " in spreadsheet"
+    if debug>1:
+        print str(product.variants[0].inventory_quantity) + " " + product.title + " >" + product.variants[0].sku +"<"
+        print "looking for "+ product.variants[0].sku + " in spreadsheet"
     for row_index in range(1,sheet.nrows):
 ## IF THERE IS A MATCH BETWEEN THE POS ITEM NUMBER AND THE SHOPIFY SKU
 # it means the item exists in both places
@@ -132,14 +147,18 @@ for product in products:
 ## if the inventory quantities differ,
             if sheet.cell(row_index,2).value != product.variants[0].inventory_quantity:
 ## in this code, the POS is the authority
-                print "inventory change"
-                print "found " + str(int(sheet.cell(row_index,2).value)) + " in store inventory : " + sheet.cell(row_index,1).value
-                print "found " + str(product.variants[0].inventory_quantity) + " in shopify inventory : " + product.title
-                print
+                report = report + "inventory change\n"
+                report = report + "found " + str(int(sheet.cell(row_index,2).value)) + " in store inventory : " + sheet.cell(row_index,1).value + "\n"
+                report = report + "found " + str(product.variants[0].inventory_quantity) + " in shopify inventory : " + product.title + "\n"
+                if debug:
+                    print "found " + str(int(sheet.cell(row_index,2).value)) + " in store inventory : " + sheet.cell(row_index,1).value
+                    print "found " + str(product.variants[0].inventory_quantity) + " in shopify inventory : " + product.title
+                    print
 ## set the shopify quantity to the POS quantity here                
                 product.variants[0].inventory_quantity = int(sheet.cell(row_index,2).value)
                 product.save()
-                print "updated shopify "+ product.title
+                if debug: 
+                    print "updated shopify "+ product.title
 
 # todo: log all changes to a file
 
@@ -148,10 +167,13 @@ for product in products:
 # todo: move the inventory file to archive folder specified in config file
 archive_name = str(datetime.now().strftime("%Y%m%d-%H%M%S"))+".xls"
 client.file_move(inventoryFile,archive_path+"/"+ archive_name)
-print "archiving at " + archive_path+"/"+ archive_name
+report = report + "archived at " + archive_path+"/"+ archive_name + "\n"
+if debug:
+    print "archived at " + archive_path+"/"+ archive_name
 # todo: delete archive files older than days specified in config file
 # done in inventoryArchiveCleaner.py script
 
+#todo: email report to someone
 
 print
 print "done"
