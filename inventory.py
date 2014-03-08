@@ -179,8 +179,8 @@ for product in products:
 
 # todo: move the inventory file to archive folder specified in config file
 archive_name = str(datetime.now().strftime("%Y%m%d-%H%M%S"))+".xls"
-client.file_move(inventoryFile,archive_path+"/"+ archive_name)
-report = report + "archived at " + archive_path+"/"+ archive_name + "\n"
+#client.file_move(inventoryFile,archive_path+"/"+ archive_name)
+#report = report + "archived at " + archive_path+"/"+ archive_name + "\n"
 if debug:
     print "archived at " + archive_path+"/"+ archive_name
 # todo: delete archive files older than days specified in config file
