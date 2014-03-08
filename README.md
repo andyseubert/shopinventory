@@ -16,7 +16,7 @@ The inventory items in your QBPOS have "Item Number"s which are matched up again
 
 ## Prepare
 *   Open a shopify store and import your inventory. For this to work you must have SKUs in your shopify products.
-*   If you're moving from zencart, put the php script called "allExport.php" on your zencart web server, configure it, and it will export into a csv which shopify can import.
+ *   If you're moving from zencart, put the php script called "allExport.php" on your zencart web server, configure it, and it will export into a csv which shopify can import.
 *   Get yourself a dropbox account and install it on your POS computer.
 *   Open POS and export your items to a .xls file with ONLY THREE COLUMNS
  * **Item Number, Item Name, Qty1** in that order
