@@ -169,7 +169,7 @@ for product in products:
 ## set the shopify quantity to the POS quantity here                
                 product.variants[0].inventory_quantity = int(sheet.cell(row_index,2).value)
                 product.save()
-                ++changecount
+                changecount +=1
                 if debug: 
                     print "updated shopify "+ product.title
 
@@ -179,8 +179,11 @@ for product in products:
 
 # todo: move the inventory file to archive folder specified in config file
 archive_name = str(datetime.now().strftime("%Y%m%d-%H%M%S"))+".xls"
+
+## commented out until zencart is finished
 #client.file_move(inventoryFile,archive_path+"/"+ archive_name)
 #report = report + "archived at " + archive_path+"/"+ archive_name + "\n"
+
 if debug:
     print "archived at " + archive_path+"/"+ archive_name
 # todo: delete archive files older than days specified in config file
