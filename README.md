@@ -9,7 +9,7 @@ The inventory items in your QBPOS have "Item Number"s which are matched up again
 ## required
 *   python (duh)
 *   excel reader lib <code>pip install xlrd</code>
-*   shopify python lib <code>pip install shopify</code>
+*   shopify python lib <code>pip install --upgrade ShopifyAPI</code>
 *   python dropbox lib <code>pip install dropbox</code>
 *   dropbox dev account? https://www.dropbox.com/developers
 
