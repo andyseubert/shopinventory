@@ -13,7 +13,7 @@ import subprocess
 from subprocess import Popen
 import sys
 
-debug=1
+debug=0
 
 # this string will be our log
 report = "starting at " + str(datetime.now()) + "\n"
@@ -149,29 +149,32 @@ products = shopify.Product.find()
 print "comparing inventory listings"
 changecount=0
 for product in products:
-    if debug>1:
-        print str(product.variants[0].inventory_quantity) + " " + product.title + " >" + product.variants[0].sku +"<"
-        print "looking for "+ product.variants[0].sku + " in spreadsheet"
-    for row_index in range(1,sheet.nrows):
-## IF THERE IS A MATCH BETWEEN THE POS ITEM NUMBER AND THE SHOPIFY SKU
-# it means the item exists in both places
-        if int(sheet.cell(row_index,0).value) == int(product.variants[0].sku):
-## if the inventory quantities differ,
-            if sheet.cell(row_index,2).value != product.variants[0].inventory_quantity:
-## in this code, the POS is the authority
-                report = report + "inventory change\n"
-                report = report + "found " + str(int(sheet.cell(row_index,2).value)) + " in store inventory : " + sheet.cell(row_index,1).value + "\n"
-                report = report + "found " + str(product.variants[0].inventory_quantity) + " in shopify inventory : " + product.title + "\n"
-                if debug:
-                    print "found " + str(int(sheet.cell(row_index,2).value)) + " in store inventory : " + sheet.cell(row_index,1).value
-                    print "found " + str(product.variants[0].inventory_quantity) + " in shopify inventory : " + product.title
-                    print
-## set the shopify quantity to the POS quantity here                
-                product.variants[0].inventory_quantity = int(sheet.cell(row_index,2).value)
-                product.save()
-                changecount +=1
-                if debug: 
-                    print "updated shopify "+ product.title
+    if product.variants[0].sku == "":
+        print "product sku missing for " + product.title
+    else:   
+        if debug>1:         
+            print str(product.variants[0].inventory_quantity) + " " + product.title + " >" + product.variants[0].sku +"<"
+            print "looking for "+ product.variants[0].sku + " in spreadsheet"
+        for row_index in range(1,sheet.nrows):
+    ## IF THERE IS A MATCH BETWEEN THE POS ITEM NUMBER AND THE SHOPIFY SKU
+    # it means the item exists in both places
+            if int(sheet.cell(row_index,0).value) == int(product.variants[0].sku):
+    ## if the inventory quantities differ,
+                if sheet.cell(row_index,2).value != product.variants[0].inventory_quantity:
+    ## in this code, the POS is the authority
+                    report = report + "inventory change\n"
+                    report = report + "found " + str(int(sheet.cell(row_index,2).value)) + " in store inventory : " + sheet.cell(row_index,1).value + "\n"
+                    report = report + "found " + str(product.variants[0].inventory_quantity) + " in shopify inventory : " + product.title + "\n"
+                    if debug:
+                        print "found " + str(int(sheet.cell(row_index,2).value)) + " in store inventory : " + sheet.cell(row_index,1).value
+                        print "found " + str(product.variants[0].inventory_quantity) + " in shopify inventory : " + product.title
+                        print
+    ## set the shopify quantity to the POS quantity here                
+                    product.variants[0].inventory_quantity = int(sheet.cell(row_index,2).value)
+                    product.save()
+                    changecount +=1
+                    if debug: 
+                        print "updated shopify "+ product.title
 
 # todo: log all changes to a file
 
@@ -181,24 +184,25 @@ for product in products:
 archive_name = str(datetime.now().strftime("%Y%m%d-%H%M%S"))+".xls"
 
 ## commented out until zencart is finished
-#client.file_move(inventoryFile,archive_path+"/"+ archive_name)
-#report = report + "archived at " + archive_path+"/"+ archive_name + "\n"
+client.file_move(inventoryFile,archive_path+"/"+ archive_name)
+report = report + "archived at " + archive_path+"/"+ archive_name + "\n"
 
 if debug:
     print "archived at " + archive_path+"/"+ archive_name
 # todo: delete archive files older than days specified in config file
 # done in inventoryArchiveCleaner.py script
 if changecount==0:
-    report = report + "\nno products updated"
+    report = report + "\nno products updated\n"
+    exit()
 report = report + "finished at " + str(datetime.now()) + "\n"
 
 #todo: email report to someone
-emailto = "-t "+report_to
-emailfrom = "-f "+report_from
-emailuser="-u "+report_user
-emailpass="-p "+report_pass
-emailsubj="-s \""+ report_subject +"\""
-emailbody="-b " + report +""
+emailto   = "-t " + report_to
+emailfrom = "-f " + report_from
+emailuser = "-u " + report_user
+emailpass = "-p " + report_pass
+emailsubj = "-s " + report_subject
+emailbody = "-b " + report
 
 
 subprocess.Popen([sys.executable, report_py_path, emailto,emailfrom,emailuser,emailpass,emailsubj,emailbody])

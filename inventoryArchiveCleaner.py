@@ -7,7 +7,7 @@ import dropbox
 from datetime import *
 
 config = ConfigParser.ConfigParser(allow_no_value=True)
-configFilePath = 'c:\\Users\\andys\\Dropbox\\shopify\\inventory.config'
+configFilePath = 'c:\\shopify\\inventory.config'
 if not os.path.isfile(configFilePath):
     print "config file " + configFilePath + " not found"
     exit()
