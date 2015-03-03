@@ -1,4 +1,4 @@
-
+#! /usr/bin/python
 from xlrd import open_workbook
 from xlrd import cellname, cellnameabs, colname
 import tempfile
@@ -12,8 +12,9 @@ from datetime import *
 import subprocess
 from subprocess import Popen
 import sys
+import unicodedata
 
-debug=0
+debug=1
 
 # this string will be our log
 report = "starting at " + str(datetime.now()) + "\n"
@@ -24,7 +25,7 @@ report = "starting at " + str(datetime.now()) + "\n"
 ## read configuration from a file
 ## todo: add argument parsing for config file location
 config = ConfigParser.ConfigParser(allow_no_value=True)
-configFilePath = 'c:\\shopify\\inventory.config'
+configFilePath = '/home/andys/shopinventory/inventory.config'
 if not os.path.isfile(configFilePath):
     print "config file " + configFilePath + " not found"
     exit()
@@ -100,7 +101,7 @@ if debug:
 # get the file from dropbox
 # I guess you "get" the file by  writing its contents to a local file in order to use it
 tempDir=tempfile.gettempdir()
-tmpInventoryFile = tempDir+"\\tempInventory.xls"
+tmpInventoryFile = tempDir+"tempInventory.xls"
 if debug:
     print "using temporary file at: " + tmpInventoryFile
     print
@@ -143,38 +144,43 @@ if debug:
     print
 
 # get all of the products
-# todo: limit products by something?
-products = shopify.Product.find()
-# REAL ACTION HAPPENS IN THIS LOOP
-print "comparing inventory listings"
-changecount=0
-for product in products:
-    if product.variants[0].sku == "":
-        print "product sku missing for " + product.title
-    else:   
-        if debug>1:         
-            print str(product.variants[0].inventory_quantity) + " " + product.title + " >" + product.variants[0].sku +"<"
-            print "looking for "+ product.variants[0].sku + " in spreadsheet"
-        for row_index in range(1,sheet.nrows):
-    ## IF THERE IS A MATCH BETWEEN THE POS ITEM NUMBER AND THE SHOPIFY SKU
-    # it means the item exists in both places
-            if int(sheet.cell(row_index,0).value) == int(product.variants[0].sku):
-    ## if the inventory quantities differ,
-                if sheet.cell(row_index,2).value != product.variants[0].inventory_quantity:
-    ## in this code, the POS is the authority
-                    report = report + "inventory change\n"
-                    report = report + "found " + str(int(sheet.cell(row_index,2).value)) + " in store inventory : " + sheet.cell(row_index,1).value + "\n"
-                    report = report + "found " + str(product.variants[0].inventory_quantity) + " in shopify inventory : " + product.title + "\n"
-                    if debug:
-                        print "found " + str(int(sheet.cell(row_index,2).value)) + " in store inventory : " + sheet.cell(row_index,1).value
-                        print "found " + str(product.variants[0].inventory_quantity) + " in shopify inventory : " + product.title
-                        print
-    ## set the shopify quantity to the POS quantity here                
-                    product.variants[0].inventory_quantity = int(sheet.cell(row_index,2).value)
-                    product.save()
-                    changecount +=1
-                    if debug: 
-                        print "updated shopify "+ product.title
+# get how many pages there are
+pages = shopify.Product.count() / 50
+currentpage=0
+while currentpage <= pages:
+	products = shopify.Product.find(page=currentpage)
+	# REAL ACTION HAPPENS IN THIS LOOP
+	print "comparing inventory listings"
+	changecount=0
+	for product in products:
+		if not product.variants[0].sku:
+			print "product sku missing for " + (product.title).encode('utf-8')
+		else:   
+			if debug>1:         
+				print  (product.title).encode('utf-8') + " >" + str(product.id) +"<"
+				print "looking for "+ product.variants[0].sku + " in spreadsheet"
+			for row_index in range(1,sheet.nrows):
+		## IF THERE IS A MATCH BETWEEN THE POS ITEM NUMBER AND THE SHOPIFY SKU
+		# it means the item exists in both places
+				if int(sheet.cell(row_index,0).value) == int(product.variants[0].sku):
+		## if the inventory quantities differ,
+					if sheet.cell(row_index,2).value != product.variants[0].inventory_quantity:
+		## in this code, the POS is the authority
+						report = report + "inventory change\n"
+						report = report + "found " + str(int(sheet.cell(row_index,2).value)) + " in store inventory : " + sheet.cell(row_index,1).value + "\n"
+						productname = unicodedata.normalize('NFKD', product.title).encode('ascii','ignore')
+						report = report + "found " + str(product.variants[0].inventory_quantity) + " in shopify inventory : " + productname + "\n"
+						if debug:
+							print "found " + str(int(sheet.cell(row_index,2).value)) + " in store inventory : " + sheet.cell(row_index,1).value
+							print "found " + str(product.variants[0].inventory_quantity) + " in shopify inventory : " + (product.title).encode('utf-8')
+							print
+		## set the shopify quantity to the POS quantity here                
+						product.variants[0].inventory_quantity = int(sheet.cell(row_index,2).value)
+						product.save()
+						changecount +=1
+						if debug: 
+							print "updated shopify "+ (product.title).encode('utf-8')
+	currentpage = currentpage + 1
 
 # todo: log all changes to a file
 
@@ -210,3 +216,4 @@ subprocess.Popen([sys.executable, report_py_path, emailto,emailfrom,emailuser,em
 
 print
 print "done"
+
