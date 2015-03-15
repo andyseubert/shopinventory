@@ -13,6 +13,7 @@ import subprocess
 from subprocess import Popen
 import sys
 import unicodedata
+import time
 
 debug=1
 
@@ -101,11 +102,11 @@ if debug:
 # get the file from dropbox
 # I guess you "get" the file by  writing its contents to a local file in order to use it
 tempDir=tempfile.gettempdir()
-tmpInventoryFile = tempDir+"tempInventory.xls"
+tmpInventoryFile = tempDir+"/tempInventory.xls"
 if debug:
     print "using temporary file at: " + tmpInventoryFile
     print
-
+ 
 # check that the dropbox inventory file exists here
 try:
     client.get_file(inventoryFile)
@@ -145,42 +146,77 @@ if debug:
 
 # get all of the products
 # get how many pages there are
-pages = shopify.Product.count() / 50
-currentpage=0
+pages = int(shopify.Product.count() / 50)+1
+currentpage = 1
+productscount = 0 
+print "comparing inventory listings"
 while currentpage <= pages:
+	print "page nbr " + str(currentpage)
 	products = shopify.Product.find(page=currentpage)
 	# REAL ACTION HAPPENS IN THIS LOOP
-	print "comparing inventory listings"
 	changecount=0
 	for product in products:
+		productscount = productscount +1
+		productname = unicodedata.normalize('NFKD', product.title).encode('ascii','ignore')
 		if not product.variants[0].sku:
-			print "product sku missing for " + (product.title).encode('utf-8')
+			report = report + "online product sku missing for " + productname + "\n"
 		else:   
-			if debug>1:         
-				print  (product.title).encode('utf-8') + " >" + str(product.id) +"<"
-				print "looking for "+ product.variants[0].sku + " in spreadsheet"
-			for row_index in range(1,sheet.nrows):
+			websku = product.variants[0].sku
+			webqty = product.variants[0].inventory_quantity
+			
+			if not product.published_at:
+				if debug > 1:
+					print "*HIDDEN PRODUCT* SKU: " + websku + " " + productname + " id: >" + str(product.id) +"<"
+					report = report + "*HIDDEN PRODUCT* SKU: " + websku + " " + productname + " id: >" + str(product.id) +"<\n"
+			else:
+				if debug >1:         
+					#print product.attributes
+					print "SKU: " + websku + " " + productname + " id: >" + str(product.id) +"<"
+					report = report + "SKU: " + websku + " \'"+ productname + "\' id: >" + str(product.id) +"<\n"
+				for row_index in range(1,sheet.nrows):
 		## IF THERE IS A MATCH BETWEEN THE POS ITEM NUMBER AND THE SHOPIFY SKU
 		# it means the item exists in both places
-				if int(sheet.cell(row_index,0).value) == int(product.variants[0].sku):
-		## if the inventory quantities differ,
-					if sheet.cell(row_index,2).value != product.variants[0].inventory_quantity:
-		## in this code, the POS is the authority
-						report = report + "inventory change\n"
-						report = report + "found " + str(int(sheet.cell(row_index,2).value)) + " in store inventory : " + sheet.cell(row_index,1).value + "\n"
-						productname = unicodedata.normalize('NFKD', product.title).encode('ascii','ignore')
-						report = report + "found " + str(product.variants[0].inventory_quantity) + " in shopify inventory : " + productname + "\n"
-						if debug:
-							print "found " + str(int(sheet.cell(row_index,2).value)) + " in store inventory : " + sheet.cell(row_index,1).value
-							print "found " + str(product.variants[0].inventory_quantity) + " in shopify inventory : " + (product.title).encode('utf-8')
-							print
-		## set the shopify quantity to the POS quantity here                
-						product.variants[0].inventory_quantity = int(sheet.cell(row_index,2).value)
-						product.save()
-						changecount +=1
-						if debug: 
-							print "updated shopify "+ (product.title).encode('utf-8')
+					if int(sheet.cell(row_index,0).value) == int(websku):
+			## if the inventory quantities differ,
+				# don't set to negative value please				
+						if int(sheet.cell(row_index,2).value) < 0:
+							storeqty = 0
+						else:
+							storeqty = int(sheet.cell(row_index,2).value)
+							
+						if int(storeqty) != int(webqty):
+								
+			## the POS is the authority
+							report = report + "\n"
+							report = report + productname + "\nonline inventory change\n"
+							report = report + "xl SKU: " + str(storeqty) + "\n"
+							report = report + "webSKU: " + str(websku) + "\n"
+							report = report + "from " + str(webqty) + " in shopify inventory.\n"
+							report = report + "to " + str(int(storeqty))+ "\n"
+							if debug:
+								print productname + "online inventory change"
+								print "xl SKU: " + str(sheet.cell(row_index,0).value) 
+								print "webSKU: " + str(websku) 
+								print "from " + str(webqty) + " in shopify inventory. to " + str(int(storeqty))
+			## set the shopify quantity to the POS quantity here  
+							
+							product.variants[0].inventory_quantity = storeqty
+							result = product.save()
+							print "result from API: " + str(result)
+							
+							## check it updated
+							if int(product.variants[0].inventory_quantity) != int(storeqty):
+								print "unable to update quantity"
+								report = report + "unable to update online quantity for SKU: " + str(websku) + " " + productname
+							else:
+								print "confirmed quantity changed to " + str(product.variants[0].inventory_quantity)
+								report = report + "confirming online qty changed to " + str(product.variants[0].inventory_quantity) + "\n"
+								changecount +=1 
+								
+							report = report + "\n"
 	currentpage = currentpage + 1
+	#print "sleeping 2 seconds"
+	#time.sleep(2)
 
 # todo: log all changes to a file
 
@@ -199,7 +235,15 @@ if debug:
 # done in inventoryArchiveCleaner.py script
 if changecount==0:
     report = report + "\nno products updated\n"
-    exit()
+    #exit()
+else:
+	report = report + str(changecount) + " products changed\n"
+
+report = report + "total online product count: " + str(int(shopify.Product.count()))+"\n"
+report = report + str(pages) + " pages of products\n"
+
+report = report + str(productscount) + " products checked for inventory\n"
+print str(productscount) + " products examined\n"
 report = report + "finished at " + str(datetime.now()) + "\n"
 
 #todo: email report to someone
