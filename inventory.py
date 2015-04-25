@@ -18,7 +18,8 @@ import time
 debug=1
 
 # this string will be our log
-report = "starting at " + str(datetime.now()) + "\n"
+starttime = datetime.now()
+report = "starting at " + str(starttime) + "\n"
 
 # todo: use try:catch to capture errors and email them to someone specified in the config file
 
@@ -149,12 +150,12 @@ if debug:
 pages = int(shopify.Product.count() / 50)+1
 currentpage = 1
 productscount = 0 
+changecount=0
 print "comparing inventory listings"
 while currentpage <= pages:
 	print "page nbr " + str(currentpage)
 	products = shopify.Product.find(page=currentpage)
 	# REAL ACTION HAPPENS IN THIS LOOP
-	changecount=0
 	for product in products:
 		productscount = productscount +1
 		productname = unicodedata.normalize('NFKD', product.title).encode('ascii','ignore')
@@ -211,7 +212,7 @@ while currentpage <= pages:
 							else:
 								print "confirmed quantity changed to " + str(product.variants[0].inventory_quantity)
 								report = report + "confirming online qty changed to " + str(product.variants[0].inventory_quantity) + "\n"
-								changecount +=1 
+								changecount = changecount + 1 
 								
 							report = report + "\n"
 	currentpage = currentpage + 1
@@ -245,6 +246,7 @@ report = report + str(pages) + " pages of products\n"
 report = report + str(productscount) + " products checked for inventory\n"
 print str(productscount) + " products examined\n"
 report = report + "finished at " + str(datetime.now()) + "\n"
+report = report + "total Run time " + str(datetime.now() - starttime) + "\n"
 
 #todo: email report to someone
 emailto   = "-t " + report_to
