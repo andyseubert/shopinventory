@@ -34,8 +34,8 @@ if not os.path.isfile(configFilePath):
 try:
     config.read(configFilePath)
     # shopify configurations
-    #URL Format	https://apikey:password@hostname/admin/resource.json
-    #Example URL	https://cc9fa84b4d3d05b7f2256f7913b66272:0192638aacc90d3ebfe7168b9d77f1d0@flora-60.myshopify.com/admin/orders.json
+    #URL Format https://apikey:password@hostname/admin/resource.json
+    #Example URL    https://cc9fa84b4d3d05b7f2256f7913b66272:0192638aacc90d3ebfe7168b9d77f1d0@flora-60.myshopify.com/admin/orders.json
     ## get shopify config options
     api_key=config.get('shopify','api_key')
     api_pass=config.get('shopify','api_pass')
@@ -144,6 +144,7 @@ shop = shopify.Shop.current
 if debug:
     print "connected to shopify shop " + storename
     print
+    report = report + "connected to shopify shop " + storename + "\n"
 
 # get all of the products
 # get how many pages there are
@@ -153,71 +154,72 @@ productscount = 0
 changecount=0
 print "comparing inventory listings"
 while currentpage <= pages:
-	print "page nbr " + str(currentpage)
-	products = shopify.Product.find(page=currentpage)
-	# REAL ACTION HAPPENS IN THIS LOOP
-	for product in products:
-		productscount = productscount +1
-		productname = unicodedata.normalize('NFKD', product.title).encode('ascii','ignore')
-		if not product.variants[0].sku:
-			report = report + "online product sku missing for " + productname + "\n"
-		else:   
-			websku = product.variants[0].sku
-			webqty = product.variants[0].inventory_quantity
-			
-			if not product.published_at:
-				if debug > 1:
-					print "*HIDDEN PRODUCT* SKU: " + websku + " " + productname + " id: >" + str(product.id) +"<"
-					report = report + "*HIDDEN PRODUCT* SKU: " + websku + " " + productname + " id: >" + str(product.id) +"<\n"
-			else:
-				if debug >1:         
-					#print product.attributes
-					print "SKU: " + websku + " " + productname + " id: >" + str(product.id) +"<"
-					report = report + "SKU: " + websku + " \'"+ productname + "\' id: >" + str(product.id) +"<\n"
-				for row_index in range(1,sheet.nrows):
-		## IF THERE IS A MATCH BETWEEN THE POS ITEM NUMBER AND THE SHOPIFY SKU
-		# it means the item exists in both places
-					if int(sheet.cell(row_index,0).value) == int(websku):
-			## if the inventory quantities differ,
-				# don't set to negative value please				
-						if int(sheet.cell(row_index,2).value) < 0:
-							storeqty = 0
-						else:
-							storeqty = int(sheet.cell(row_index,2).value)
-							
-						if int(storeqty) != int(webqty):
-								
-			## the POS is the authority
-							report = report + "\n"
-							report = report + productname + "\nonline inventory change\n"
-							report = report + "xl SKU: " + str(storeqty) + "\n"
-							report = report + "webSKU: " + str(websku) + "\n"
-							report = report + "from " + str(webqty) + " in shopify inventory.\n"
-							report = report + "to " + str(int(storeqty))+ "\n"
-							if debug:
-								print productname + "online inventory change"
-								print "xl SKU: " + str(sheet.cell(row_index,0).value) 
-								print "webSKU: " + str(websku) 
-								print "from " + str(webqty) + " in shopify inventory. to " + str(int(storeqty))
-			## set the shopify quantity to the POS quantity here  
-							
-							product.variants[0].inventory_quantity = storeqty
-							result = product.save()
-							print "result from API: " + str(result)
-							
-							## check it updated
-							if int(product.variants[0].inventory_quantity) != int(storeqty):
-								print "unable to update quantity"
-								report = report + "unable to update online quantity for SKU: " + str(websku) + " " + productname
-							else:
-								print "confirmed quantity changed to " + str(product.variants[0].inventory_quantity)
-								report = report + "confirming online qty changed to " + str(product.variants[0].inventory_quantity) + "\n"
-								changecount = changecount + 1 
-								
-							report = report + "\n"
-	currentpage = currentpage + 1
-	#print "sleeping 2 seconds"
-	#time.sleep(2)
+    print "page nbr " + str(currentpage)
+    products = shopify.Product.find(page=currentpage)
+    # REAL ACTION HAPPENS IN THIS LOOP
+    for product in products:
+        productscount = productscount +1
+        productname = unicodedata.normalize('NFKD', product.title).encode('ascii','ignore')
+        if not product.variants[0].sku:
+            report = report + "online product sku missing for " + productname + "\n"
+        else:   
+            websku = product.variants[0].sku
+            webqty = product.variants[0].inventory_quantity
+            
+            if not product.published_at:
+                if debug > 1:
+                    print "*HIDDEN PRODUCT* SKU: " + websku + " " + productname + " id: >" + str(product.id) +"<"
+                    report = report + "*HIDDEN PRODUCT* SKU: " + websku + " " + productname + " id: >" + str(product.id) +"<\n"
+            else:
+                if debug >1:         
+                    #print product.attributes
+                    print "SKU: " + websku + " " + productname + " id: >" + str(product.id) +"<"
+                    report = report + "SKU: " + websku + " \'"+ productname + "\' id: >" + str(product.id) +"<\n"
+                for row_index in range(1,sheet.nrows):
+        ## IF THERE IS A MATCH BETWEEN THE POS ITEM NUMBER AND THE SHOPIFY SKU
+        # it means the item exists in both places
+                    if int(sheet.cell(row_index,0).value) == int(websku):
+            ## if the inventory quantities differ,
+                # don't set to negative value please                
+                        if int(sheet.cell(row_index,2).value) < 0:
+                            storeqty = 0
+                        else:
+                            storeqty = int(sheet.cell(row_index,2).value)
+                            
+                        if int(storeqty) != int(webqty):
+                                
+            ## the POS is the authority
+                            report = report + "\n"
+                            report = report + productname + "\nonline inventory change\n"
+                            report = report + "xl QTY: " + str(storeqty) + "\n"
+                            report = report + "webSKU: " + str(websku) + "\n"
+                            report = report + "from " + str(webqty) + " in shopify inventory.\n"
+                            report = report + "to " + str(int(storeqty))+ "\n"
+                            if debug:
+                                print productname + "online inventory change"
+                                print "xl QTY: " + str(sheet.cell(row_index,0).value) 
+                                print "webSKU: " + str(websku) 
+                                print "from " + str(webqty) + " in shopify inventory. to " + str(int(storeqty))
+            ## set the shopify quantity to the POS quantity here  
+                            
+                            product.variants[0].inventory_quantity = storeqty
+                            result = product.save()
+                            print "result from API: " + str(result)
+                            
+                            ## check it updated
+                            if int(product.variants[0].inventory_quantity) != int(storeqty):
+                                print "unable to update quantity"
+                                report = report + "unable to update online quantity for SKU: " + str(websku) + " " + productname + "\n"
+                                report = report + "web quantity is " + str(int(product.variants[0].inventory_quantity))
+                            else:
+                                print "confirmed quantity changed to " + str(product.variants[0].inventory_quantity)
+                                report = report + "confirming online qty changed to " + str(product.variants[0].inventory_quantity) + "\n"
+                                changecount = changecount + 1 
+                                
+                            report = report + "\n"
+    currentpage = currentpage + 1
+    #print "sleeping 2 seconds"
+    #time.sleep(2)
 
 # todo: log all changes to a file
 
@@ -238,7 +240,7 @@ if changecount==0:
     report = report + "\nno products updated\n"
     #exit()
 else:
-	report = report + str(changecount) + " products changed\n"
+    report = report + str(changecount) + " products changed\n"
 
 report = report + "total online product count: " + str(int(shopify.Product.count()))+"\n"
 report = report + str(pages) + " pages of products\n"
